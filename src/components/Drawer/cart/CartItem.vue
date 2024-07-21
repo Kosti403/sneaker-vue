@@ -1,5 +1,5 @@
 <template>
-  <div class="relative flex w-full border border-slate-100 rounded-xl p-4 gap-4">
+  <div class="relative flex w-full border border-slate-100 rounded-xl p-2 gap-4 justify-between">
 
     <img class="h-16 w-16" src="/public/sneakers/sneakers-1.jpg" alt="sneakers" />
 

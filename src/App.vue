@@ -3,9 +3,18 @@ import { onMounted, provide, reactive, ref, watch } from 'vue'
 import axios from 'axios'
 import HeaderComponent from './components/header/HeaderComponent.vue'
 import CardList from './components/card/CardList.vue'
-// import DrawerComponent from './components/Drawer/DrawerComponent.vue'
+import DrawerComponent from './components/Drawer/DrawerComponent.vue'
 
 const items = ref([])
+
+const drawerOpen = ref(false)
+
+const closeDrawer = () => {
+  drawerOpen.value = false
+}
+const openDrawer = () => {
+  drawerOpen.value = true
+}
 
 const filters = reactive({
   sortBy: 'title',
@@ -36,7 +45,22 @@ const fetchFavorites = async () => {
 }
 
 const addToFavorite = async (item) => {
-  item.isFavorite = true
+  try {
+    if (!item.isFavorite) {
+      const obj = {
+        parentId: item.id
+      }
+      item.isFavorite = true
+      const { data } = await axios.post('https://b4e88eb3a4ce1ad6.mokky.dev/favorites', obj)
+      item.favoriteId = data.id
+    } else {
+      item.isFavorite = false
+      await axios.delete(`https://b4e88eb3a4ce1ad6.mokky.dev/favorites/${item.favoriteId}`)
+      item.favoriteId = null
+    }
+  } catch (err) {
+    throw new Error(err.response.data.message || 'Something went wrong')
+  }
 }
 const fetchItems = async () => {
   try {
@@ -50,7 +74,12 @@ const fetchItems = async () => {
     const { data } = await axios.get('https://b4e88eb3a4ce1ad6.mokky.dev/items', {
       params
     })
-    items.value = data.map((obj) => ({ ...obj, isFavorite: false, isAdded: false }))
+    items.value = data.map((obj) => ({
+      ...obj,
+      isFavorite: false,
+      favoriteId: null,
+      isAdded: false
+    }))
   } catch (error) {
     throw new Error(error.response.data.message || 'Something went wrong')
   }
@@ -63,24 +92,20 @@ onMounted(async () => {
 
 watch(filters, fetchItems)
 
-provide(`addToFavorite`, addToFavorite)
+provide(`cartAction`, {
+  closeDrawer,
+  openDrawer
+})
 </script>
 
 <template>
-  <!-- <DrawerComponent /> -->
+  <DrawerComponent v-if="drawerOpen" />
   <div class="w-4/5 m-auto bg-white rounded-xl shadow-xl mt-14">
-    <HeaderComponent />
+    <HeaderComponent @open-drawer="openDrawer" />
 
     <section class="p-10">
-      <div class="flex justify-between items-center">
+      <div class="flex justify-between items-center mainSection">
         <h2 class="text-3xl font-bold px-10 py-5">All Sneakers</h2>
-
-        <select @change="onChangeSelect" class="py-2 px-3 border border-slate-200 outline-none">
-          <option value="title">По названию</option>
-          <option value="price">По цене (дешевые)</option>
-          <option value="-price">По цене (дорогие)</option>
-        </select>
-
         <div class="relative">
           <img src="/public/search.svg" alt="" class="absolute left-0 top-4 align-center" />
           <input
@@ -90,9 +115,24 @@ provide(`addToFavorite`, addToFavorite)
             class="border border-slate-200 px-4 py-2 pl-11 pr-4 rounded-md outline-none focus:border-gray-400 align-text-top"
           />
         </div>
+        <select @change="onChangeSelect" class="py-2 px-3 border border-slate-200 outline-none">
+          <option value="title">По названию</option>
+          <option value="price">По цене (дешевые)</option>
+          <option value="-price">По цене (дорогие)</option>
+        </select>
       </div>
       <div class="mt-10"></div>
-      <CardList :items="items" />
+      <CardList :items="items" @add-to-favorite="addToFavorite" />
     </section>
   </div>
 </template>
+
+<style scoped>
+@media screen and (max-width: 1100px) {
+  
+  .mainSection {
+    flex-direction: column;
+    gap: 15px;
+  }
+}
+</style>

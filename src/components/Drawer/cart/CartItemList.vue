@@ -3,9 +3,11 @@ import CartItem from './CartItem.vue'
 </script>
 
 <template>
-  <CartItem />
-  <CartItem />
-  <CartItem />
-  <CartItem />
-  <CartItem />
+  <div class="grid grid-cols-1 gap-2">
+    <CartItem />
+    <CartItem />
+    <CartItem />
+    <CartItem />
+    <CartItem />
+  </div>
 </template>
