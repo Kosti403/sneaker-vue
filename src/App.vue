@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, provide, reactive, ref, watch } from 'vue'
+import { computed, onMounted, provide, reactive, ref, watch } from 'vue'
 import axios from 'axios'
 import HeaderComponent from './components/header/HeaderComponent.vue'
 import CardList from './components/card/CardList.vue'
@@ -17,19 +17,28 @@ const closeDrawer = () => {
 const openDrawer = () => {
   drawerOpen.value = true
 }
+const totalPrice = computed(() => cart.value.reduce((acc, item) => acc + item.price, 0))
 
+const vatPrice = computed(() => Math.round((totalPrice.value * 5) / 100))
 const filters = reactive({
   sortBy: 'title',
   searchQuery: ''
 })
 
 const addToCart = (item) => {
+  cart.value.push(item)
+  item.isAdd = true
+}
+const removedFromCart = (item) => {
+  cart.value.splice(cart.value.indexOf(item), 1)
+  item.isAdd = false
+}
+
+const onClickAddPlus = (item) => {
   if (!item.isAdd) {
-    cart.value.push(item)
-    item.isAdd = true
+    addToCart(item)
   } else {
-    cart.value.splice(cart.value.indexOf(item), 1)
-    item.isAdd = false
+    removedFromCart(item)
   }
   console.log(cart)
 }
@@ -108,14 +117,16 @@ watch(filters, fetchItems)
 provide(`cart`, {
   cart,
   closeDrawer,
-  openDrawer
+  openDrawer,
+  addToCart,
+  removedFromCart
 })
 </script>
 
 <template>
-  <DrawerComponent v-if="drawerOpen" />
+  <DrawerComponent v-if="drawerOpen" :totalPrice="totalPrice" :vatPrice="vatPrice" />
   <div class="w-4/5 m-auto bg-white rounded-xl shadow-xl mt-14">
-    <HeaderComponent @open-drawer="openDrawer" />
+    <HeaderComponent :totalPrice="totalPrice" @open-drawer="openDrawer" />
 
     <section class="p-10">
       <div class="flex justify-between items-center mainSection">
@@ -136,7 +147,7 @@ provide(`cart`, {
         </select>
       </div>
       <div class="mt-10"></div>
-      <CardList :items="items" @add-to-favorite="addToFavorite" @add-to-cart="addToCart" />
+      <CardList :items="items" @add-to-favorite="addToFavorite" @add-to-cart="onClickAddPlus" />
     </section>
   </div>
 </template>
