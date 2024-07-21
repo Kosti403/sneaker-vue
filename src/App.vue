@@ -7,6 +7,8 @@ import DrawerComponent from './components/Drawer/DrawerComponent.vue'
 
 const items = ref([])
 
+const cart = ref([])
+
 const drawerOpen = ref(false)
 
 const closeDrawer = () => {
@@ -20,6 +22,17 @@ const filters = reactive({
   sortBy: 'title',
   searchQuery: ''
 })
+
+const addToCart = (item) => {
+  if (!item.isAdd) {
+    cart.value.push(item)
+    item.isAdd = true
+  } else {
+    cart.value.splice(cart.value.indexOf(item), 1)
+    item.isAdd = false
+  }
+  console.log(cart)
+}
 
 const onChangeSelect = (event) => {
   filters.sortBy = event.target.value
@@ -78,7 +91,7 @@ const fetchItems = async () => {
       ...obj,
       isFavorite: false,
       favoriteId: null,
-      isAdded: false
+      isAdd: false
     }))
   } catch (error) {
     throw new Error(error.response.data.message || 'Something went wrong')
@@ -92,7 +105,8 @@ onMounted(async () => {
 
 watch(filters, fetchItems)
 
-provide(`cartAction`, {
+provide(`cart`, {
+  cart,
   closeDrawer,
   openDrawer
 })
@@ -122,14 +136,13 @@ provide(`cartAction`, {
         </select>
       </div>
       <div class="mt-10"></div>
-      <CardList :items="items" @add-to-favorite="addToFavorite" />
+      <CardList :items="items" @add-to-favorite="addToFavorite" @add-to-cart="addToCart" />
     </section>
   </div>
 </template>
 
 <style scoped>
 @media screen and (max-width: 1100px) {
-  
   .mainSection {
     flex-direction: column;
     gap: 15px;

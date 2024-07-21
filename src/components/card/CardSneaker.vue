@@ -5,8 +5,8 @@ defineProps({
   title: String,
   prise: Number,
   isFavorite: Boolean,
-  isAdded: Boolean,
-  onclickAdded: Function,
+  isAdd: Boolean,
+  onclickAdd: Function,
   onclickFavorite: Function
 })
 </script>
@@ -31,13 +31,14 @@ defineProps({
       </div>
 
       <img
-        :src="!isAdded ? '/public/plus.svg' : '/public/checked.svg'"
+        :src="!isAdd ? '/public/plus.svg' : '/public/checked.svg'"
         alt="plus"
-        @click="onclickAdded"
+        @click="onclickAdd"
       />
     </div>
   </div>
 </template>
 
-<style scope>
+<style scoped>
+
 </style>
