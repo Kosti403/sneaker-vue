@@ -9,6 +9,8 @@ const items = ref([])
 
 const cart = ref([])
 
+const isCreateOrder = ref(false)
+
 const drawerOpen = ref(false)
 
 const closeDrawer = () => {
@@ -28,6 +30,24 @@ const filters = reactive({
 const addToCart = (item) => {
   cart.value.push(item)
   item.isAdd = true
+}
+const cartIsEmpty = computed(() => cart.value.length === 0)
+
+const cartDisabledOrder = computed(() => isCreateOrder.value || cartIsEmpty.value)
+const createOrder = async () => {
+  try {
+    isCreateOrder.value = true
+    const { data } = await axios.post('https://b4e88eb3a4ce1ad6.mokky.dev/orders', {
+      items: cart.value,
+      totalPrice: totalPrice.value
+    })
+    cart.value = []
+    return data
+  } catch (error) {
+    throw new Error(error.response.data.message || 'Something went wrong')
+  } finally {
+    isCreateOrder.value = false
+  }
 }
 const removedFromCart = (item) => {
   cart.value.splice(cart.value.indexOf(item), 1)
@@ -108,12 +128,33 @@ const fetchItems = async () => {
 }
 
 onMounted(async () => {
+  const localCard = localStorage.getItem('cart')
+  cart.value = localCard ? JSON.parse(localCard) : []
+
   await fetchItems()
   await fetchFavorites()
+  items.value = items.value.map((item) => ({
+    ...item,
+    isAdd: cart.value.some((cartItem) => cartItem.id === item.id)
+  }))
+})
+
+watch(cart, () => {
+  items.value = items.value.map((item) => ({
+    ...item,
+    isAdd: false
+  }))
 })
 
 watch(filters, fetchItems)
 
+watch(
+  cart,
+  () => {
+    localStorage.setItem('cart', JSON.stringify(cart.value))
+  },
+  { deep: true }
+)
 provide(`cart`, {
   cart,
   closeDrawer,
@@ -124,7 +165,13 @@ provide(`cart`, {
 </script>
 
 <template>
-  <DrawerComponent v-if="drawerOpen" :totalPrice="totalPrice" :vatPrice="vatPrice" />
+  <DrawerComponent
+    v-if="drawerOpen"
+    :totalPrice="totalPrice"
+    :vatPrice="vatPrice"
+    @createOrder="createOrder"
+    :cartDisabledOrder="cartDisabledOrder"
+  />
   <div class="w-4/5 m-auto bg-white rounded-xl shadow-xl mt-14">
     <HeaderComponent :totalPrice="totalPrice" @open-drawer="openDrawer" />
 
