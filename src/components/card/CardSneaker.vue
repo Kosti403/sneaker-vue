@@ -6,8 +6,8 @@ defineProps({
   prise: Number,
   isFavorite: Boolean,
   isAdd: Boolean,
-  onclickAdd: Function,
-  onclickFavorite: Function
+  onClickAdd: Function,
+  onClickFavorites: Function
 })
 </script>
 
@@ -16,9 +16,10 @@ defineProps({
     class="relative bg-white border border-slate-100 rounded-3xl p-8 cursor-pointer hover:-translate-y-2 hover:shadow-xl transition 2s flex flex-col justify-between"
   >
     <img
+      v-if="onClickFavorites"
       :src="!isFavorite ? '/public/like-1.svg' : '/public/like-2.svg'"
       alt="like2"
-      @click="onclickFavorite"
+      @click="onClickFavorites"
       class="absolute top-8 left-8"
     />
 
@@ -31,14 +32,13 @@ defineProps({
       </div>
 
       <img
+        v-if="onClickAdd"
         :src="!isAdd ? '/public/plus.svg' : '/public/checked.svg'"
         alt="plus"
-        @click="onclickAdd"
+        @click="onClickAdd"
       />
     </div>
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

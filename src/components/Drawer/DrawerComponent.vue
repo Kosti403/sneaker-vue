@@ -1,15 +1,36 @@
 <script setup>
-import { inject } from 'vue'
+import { computed, inject, ref } from 'vue'
 import CartItemList from './cart/CartItemList.vue'
 import infoBlockCart from './infoBlockCart/infoBlockСart.vue'
-const { closeDrawer } = inject('cart')
-const emit = defineEmits(['createOrder'])
+import axios from 'axios'
 
-defineProps({
+const props = defineProps({
   totalPrice: Number,
-  vatPrice: Number,
-  cartDisabledOrder: Boolean
+  vatPrice: Number
 })
+const isCreateOrder = ref(false)
+const orderId = ref(null)
+const createOrder = async () => {
+  try {
+    isCreateOrder.value = true
+    const { data } = await axios.post('https://b4e88eb3a4ce1ad6.mokky.dev/orders', {
+      items: cart.value,
+      totalPrice: props.totalPrice.value
+    })
+    cart.value = []
+    orderId.value = data.id
+  } catch (error) {
+    throw new Error(error.response.data.message || 'Something went wrong')
+  } finally {
+    isCreateOrder.value = false
+  }
+}
+
+const { cart, closeDrawer } = inject('cart')
+
+const cartIsEmpty = computed(() => cart.value.length === 0)
+
+const cartDisabledOrder = computed(() => isCreateOrder.value || cartIsEmpty.value)
 </script>
 
 <template>
@@ -25,8 +46,15 @@ defineProps({
       />
       <h2 class="text-2xl font-bold">Корзина</h2>
     </div>
-    <div v-if="!totalPrice" class="flex h-full items-center justify-center">
+    <div v-if="!totalPrice || orderId" class="flex h-full items-center justify-center">
       <infoBlockCart
+        v-if="orderId"
+        title="Заказ Оформлен!!"
+        :descriptions="`Ваш заказ номер №${orderId} скоро будет передан службе доставки`"
+        imageUrl="/public/order-success-icon.png"
+      />
+      <infoBlockCart
+        v-if="!totalPrice && !orderId"
         title="Корзина пустая"
         descriptions="Добавьте хотя бы одну пару кроссовок, чтобы сделать заказ"
         imageUrl="/public/package-icon.png"
@@ -49,7 +77,7 @@ defineProps({
         </div>
 
         <button
-          @click="() => emit('createOrder')"
+          @click="createOrder"
           :disabled="cartDisabledOrder"
           class="bg-lime-500 w-full rounded-xl py-3 disabled:bg-slate-300 hover:bg-lime-600 active:bg-lime-800 transition cursor-pointer"
         >

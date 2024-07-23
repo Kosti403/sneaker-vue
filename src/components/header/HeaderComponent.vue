@@ -8,22 +8,27 @@ defineProps({
 
 <template>
   <header class="flex gap-5 justify-between border-b border-t-slate-300 pb-5 px-10 py-8 header">
-    <div class="flex items-center gap-4">
-      <img src="/public/logo.png" alt="logo" class="w-10 h-10" />
-      <div>
-        <h2 class="text-xl font-bold uppercase">Vue Sneaker</h2>
-        <p class="title">The Best Sneaker Town</p>
+    <router-link to="/">
+      <div class="flex items-center gap-4">
+        <img src="/public/logo.png" alt="logo" class="w-10 h-10" />
+        <div>
+          <h2 class="text-xl font-bold uppercase">Vue Sneaker</h2>
+          <p class="title">The Best Sneaker Town</p>
+        </div>
       </div>
-    </div>
+    </router-link>
     <ul class="flex gap-10 list">
       <li @click="emit('openDrawer')" class="navList hover:text-black hover:font-bold">
         <img src="/public/cart.svg" alt="" />
         <p>{{ totalPrice }} $</p>
       </li>
-      <li class="navList hover:text-black hover:font-bold">
-        <img src="/public/heart.svg" alt="" />
-        <p>Закладки</p>
-      </li>
+      <router-link to="/favorites" class="navList">
+        <li class="navList hover:text-black hover:font-bold">
+          <img src="/public/heart.svg" alt="" />
+          <p>Закладки</p>
+        </li>
+      </router-link>
+
       <li class="navList hover:text-black hover:font-bold">
         <img src="/public/profile.svg" alt="" />
         <p>Profile</p>
@@ -43,8 +48,9 @@ defineProps({
 .title {
   color: hsla(0, 0%, 62%, 1);
 }
-@media screen and (max-width:1100px) {
-  .header, .list {
+@media screen and (max-width: 1100px) {
+  .header,
+  .list {
     flex-direction: column;
     align-items: center;
   }
